@@ -74,94 +74,91 @@ h2{color:#0050ff;margin:10px 0;}
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function(){
-  const username = localStorage.getItem("LUMIEARN_LOGGED_IN");
-  if(!username){ window.location.href = "login.html"; return; }
+// --- COUNTRY CONFIG ---
+const countryConfigs = {
+  "Kenya": { till:"4560832", currency:"KES", capitalFee:300, procedureMPESA:`<ol><li>Go to M-PESA → Lipa na M-PESA → Paybill</li><li>Enter Till Number: 4560832</li><li>Amount: {amount}</li><li>Enter username: {username}</li><li>Enter PIN & confirm</li></ol>`, procedureAirtel:`<ol><li>Dial *222# → Paybill</li><li>Till Number: 4560832</li><li>Amount: {amount}</li><li>Username: {username}</li><li>Confirm</li></ol>` },
+  "Uganda": { till:"8765432", currency:"UGX", capitalFee:18500, procedureMPESA:`<ol><li>Go to MTN → Paybill</li><li>Till Number: 8765432</li><li>Amount: {amount}</li><li>Username: {username}</li></ol>`, procedureAirtel:`<ol><li>Airtel Money → Paybill</li><li>Till Number: 8765432</li><li>Amount: {amount}</li><li>Username: {username}</li></ol>` },
+  // Add more countries here...
+};
 
-  const userKey = "LUMIEARN_USER_" + username.toLowerCase();
-  let userData = JSON.parse(localStorage.getItem(userKey));
-  if(!userData){ alert("User account not found."); window.location.href = "login.html"; return; }
-  if(userData.paid === true){ window.location.href = "dashboard.html"; return; }
+// --- GET USER DATA ---
+const username = localStorage.getItem("LUMIEARN_LOGGED_IN");
+if(!username){ window.location.href="login.html"; }
+const userKey = "LUMIEARN_USER_"+username.toLowerCase();
+let userData = JSON.parse(localStorage.getItem(userKey));
+if(!userData){ alert("User not found"); window.location.href="login.html"; }
+if(userData.paid) window.location.href="dashboard.html";
 
-  const activationAmount = userData.capitalFee || 150;
-  const phone = userData.phone || "+254000000000";
-  document.getElementById("activationAmount").textContent = "KES " + activationAmount;
-  document.getElementById("paymentPhone").textContent = phone;
+// --- ELEMENTS ---
+const amountEl = document.getElementById("activationAmount");
+const phoneEl = document.getElementById("paymentPhone");
+const mpesaBtn = document.getElementById("mpesaBtn");
+const airtelBtn = document.getElementById("airtelBtn");
+const popup = document.getElementById("popup");
+const popupBody = document.getElementById("popupBody");
+const popupClose = document.getElementById("popupClose");
+const payBtn = document.getElementById("payBtn");
+const loadingText = document.getElementById("loadingText");
 
-  const popup = document.getElementById("popup");
-  const popupBody = document.getElementById("popupBody");
-  document.getElementById("popupClose").addEventListener("click",()=>popup.style.display="none");
+// --- POPUP FUNCTIONS ---
+popupClose.addEventListener("click",()=>popup.style.display="none");
+function showPopup(content){ popupBody.innerHTML = content; popup.style.display="block"; }
 
-  function showPopup(content){ popupBody.innerHTML = content; popup.style.display="block"; }
+// --- DYNAMIC DISPLAY FUNCTION ---
+function updatePaymentInfo(){
+  const country = userData.country || "Kenya";
+  const config = countryConfigs[country] || countryConfigs["Kenya"];
+  
+  amountEl.textContent = config.currency + " " + config.capitalFee;
+  phoneEl.textContent = userData.phone;
 
-  const mpesaBtn = document.getElementById("mpesaBtn");
-  const airtelBtn = document.getElementById("airtelBtn");
+  mpesaBtn.onclick = ()=>showPopup(`
+    <h3>${country} MPESA</h3>
+    <p>Till Number: <strong id="tillNumber">${config.till}</strong></p>
+    <button class="copy-btn" onclick="navigator.clipboard.writeText('${config.till}')">Copy Till</button>
+    <p>Procedure:</p>
+    ${config.procedureMPESA.replace("{amount}",config.capitalFee).replace("{username}",username)}
+  `);
 
-  // Manual instructions for Kenya
-  const manualMPESA = `
-    <h3>Safaricom MPESA</h3>
-    <p>Use the following Till Number to pay:</p>
-    <p><strong id="tillNumber">4560832</strong></p>
-    <button class="copy-btn" onclick="navigator.clipboard.writeText('4560832')">Copy Till</button>
-    <p>Steps:</p>
-    <ol>
-      <li>Go to M-PESA → Lipa na M-PESA → Paybill</li>
-      <li>Enter Till Number: 4560832</li>
-      <li>Enter Amount: ${activationAmount}</li>
-      <li>Enter your name or username: ${username}</li>
-      <li>Enter PIN & confirm</li>
-    </ol>
-  `;
+  airtelBtn.onclick = ()=>showPopup(`
+    <h3>${country} Airtel</h3>
+    <p>Till Number: <strong id="tillNumber">${config.till}</strong></p>
+    <button class="copy-btn" onclick="navigator.clipboard.writeText('${config.till}')">Copy Till</button>
+    <p>Procedure:</p>
+    ${config.procedureAirtel.replace("{amount}",config.capitalFee).replace("{username}",username)}
+  `);
+}
 
-  const manualAirtel = `
-    <h3>Airtel Money</h3>
-    <p>Use the following Till Number to pay:</p>
-    <p><strong id="airtelTill">4560832</strong></p>
-    <button class="copy-btn" onclick="navigator.clipboard.writeText('4560832')">Copy Till</button>
-    <p>Steps:</p>
-    <ol>
-      <li>Dial *222# → Paybill</li>
-      <li>Enter Till Number: 4560832</li>
-      <li>Enter Amount: ${activationAmount}</li>
-      <li>Enter your username: ${username}</li>
-      <li>Confirm payment</li>
-    </ol>
-  `;
+// --- INITIAL UPDATE ---
+updatePaymentInfo();
 
-  mpesaBtn.addEventListener("click",()=>showPopup(manualMPESA));
-  airtelBtn.addEventListener("click",()=>showPopup(manualAirtel));
+// --- API PUSH ---
+payBtn.addEventListener("click", async ()=>{
+  loadingText.style.display="block";
+  try{
+    const country = userData.country || "Kenya";
+    const config = countryConfigs[country] || countryConfigs["Kenya"];
+    const apiKey = "kthx9bnnggn";
+    const callbackUrl = `${window.location.origin}/api/mpesa-callback?username=${username}`;
+    const response = await fetch("https://api.smartcodedesigners.co.ke/mpesa/push",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","Authorization":"Bearer "+apiKey},
+      body:JSON.stringify({till:config.till, phone:userData.phone, amount:config.capitalFee, username, callback_url:callbackUrl})
+    });
+    const text = await response.text();
+    let data;
+    try{ data = JSON.parse(text); }catch(e){ throw new Error("Invalid JSON: "+text); }
 
-  const payBtn = document.getElementById("payBtn");
-  const loadingText = document.getElementById("loadingText");
-
-  // SAFARICOM PUSH API
-  payBtn.addEventListener("click", async ()=>{
-    loadingText.style.display="block";
-    try{
-      const apiKey = "kthx9bnnggn";
-      const tillNumber = "4560832";
-      const callbackUrl = `${window.location.origin}/api/mpesa-callback?username=${username}`;
-      const response = await fetch("https://api.smartcodedesigners.co.ke/mpesa/push", {
-        method:"POST",
-        headers:{"Content-Type":"application/json","Authorization":"Bearer "+apiKey},
-        body: JSON.stringify({till:tillNumber, phone, amount:activationAmount, username, callback_url:callbackUrl})
-      });
-      const text = await response.text();
-      let data;
-      try{ data = JSON.parse(text); }catch(e){ throw new Error("Invalid JSON returned: "+text); }
-
-      if(data.status === "success"){
-        userData.paid = true;
-        localStorage.setItem(userKey, JSON.stringify(userData));
-        alert("Payment successful! Redirecting to dashboard...");
-        window.location.href="dashboard.html";
-      } else {
-        alert("Payment failed: " + (data.message || "Unknown error"));
-      }
-    }catch(err){
-      alert("Payment error: "+err.message);
-    }finally{ loadingText.style.display="none"; }
-  });
+    if(data.status==="success"){
+      userData.paid=true;
+      localStorage.setItem(userKey,JSON.stringify(userData));
+      alert("Payment successful! Redirecting to dashboard...");
+      window.location.href="dashboard.html";
+    } else {
+      alert("Payment failed: "+(data.message||"Unknown"));
+    }
+  }catch(err){ alert("Payment error: "+err.message); }
+  finally{ loadingText.style.display="none"; }
 });
 </script>
 </body>
