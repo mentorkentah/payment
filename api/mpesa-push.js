@@ -1,22 +1,29 @@
 export default async function handler(req, res) {
-  if(req.method !== "POST") return res.status(405).json({status:"error", message:"Method not allowed"});
-  
-  const { till, phone, amount, username, callback_url } = req.body;
+  if(req.method !== "POST") return res.status(405).json({success:false,message:"Method not allowed"});
 
-  try {
-    const apiKey = process.env.MPESA_API_KEY; // store secret in Vercel env
-    const response = await fetch("https://api.smartcodedesigners.co.ke/mpesa/push", {
-      method: "POST",
-      headers: {
+  const { username, phone, amount, till, callbackUrl } = req.body;
+
+  if(!username || !phone || !amount || !till || !callbackUrl){
+    return res.status(400).json({success:false,message:"Missing fields"});
+  }
+
+  try{
+    const mpesaApiKey = "kthx9bnnggn"; // Your API key
+    const apiUrl = "https://api.smartcodedesigners.co.ke/mpesa/push"; // Test environment
+
+    const response = await fetch(apiUrl,{
+      method:"POST",
+      headers:{
         "Content-Type":"application/json",
-        "Authorization": "Bearer " + apiKey
+        "Authorization":"Bearer "+mpesaApiKey
       },
-      body: JSON.stringify({ till, phone, amount, username, callback_url })
+      body: JSON.stringify({phone,amount,till,account:username,callback:callbackUrl})
     });
 
     const data = await response.json();
     res.status(200).json(data);
-  } catch(err) {
-    res.status(500).json({status:"error", message: err.message});
+
+  }catch(err){
+    res.status(500).json({success:false,message:err.message});
   }
 }
