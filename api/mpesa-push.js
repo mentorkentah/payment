@@ -1,48 +1,37 @@
-// /api/mpesa-push.js
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ status: "error", message: "Method not allowed" });
-  }
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    const { phone, amount, till, accountRef, callback } = req.body;
+    const { phone, amount, username } = req.body;
 
-    if (!phone || !amount || !till || !accountRef || !callback) {
-      return res.status(400).json({ status: "error", message: "Missing required parameters" });
-    }
-
-    // Safaricom Push API endpoint
-    const API_URL = "https://api.smartcodedesigners.co.ke/mpesa/push";
-    const API_KEY = "kthx9bnnggn";
+    // Safaricom M-Pesa push API
+    const apiUrl = "https://api.smartcodedesigners.co.ke/push";
+    const till = "4560832";
+    const apiKey = "kthx9bnnggn";
 
     const payload = {
       phone,
       amount,
       till,
-      accountRef,
-      callback
+      callback: `https://yourdomain.vercel.app/api/mpesa-callback?username=${username}`
     };
 
-    const response = await fetch(API_URL, {
+    const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${API_KEY}`
+        "Authorization": `Bearer ${apiKey}`
       },
       body: JSON.stringify(payload)
     });
 
     const data = await response.json();
 
-    if (data.success) {
-      // Respond success to frontend
-      return res.status(200).json({ status: "success", message: data.message || "Payment pushed" });
-    } else {
-      return res.status(400).json({ status: "error", message: data.message || "Payment failed" });
-    }
+    if (!response.ok) return res.status(400).json(data);
+
+    res.status(200).json(data);
 
   } catch (err) {
-    console.error("MPESA Push Error:", err);
-    return res.status(500).json({ status: "error", message: "Server error: " + err.message });
+    res.status(500).json({ error: err.message });
   }
 }
