@@ -1,40 +1,40 @@
-// This endpoint is called by Safaricom when payment is completed
+// mpesa-callback.js
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ status: "error", message: "Method not allowed" });
+  // Only accept POST requests from Safaricom
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Method not allowed' });
   }
 
   try {
-    const callbackData = req.body;
+    const data = req.body;
 
-    // Example Safaricom callback data structure:
-    // {
-    //   accountRef: "USERNAME",
-    //   amount: 150,
-    //   phone: "+254712345678",
-    //   status: "success"
-    // }
+    // Safaricom sends JSON with ResultCode, Amount, PhoneNumber, etc.
+    // For testing, you can log it:
+    console.log("M-Pesa Callback Received:", data);
 
-    const { accountRef, status, amount, phone } = callbackData;
+    // Check if payment was successful
+    if (data.ResultCode === 0) {
+      const username = data.Username || "unknown";
 
-    if (!accountRef) {
-      return res.status(400).json({ status: "error", message: "Missing accountRef" });
+      // Here, normally you would update your database
+      // But for your setup with localStorage, we return JSON for frontend
+      return res.status(200).json({
+        success: true,
+        message: "Payment successful",
+        username: username,
+        amount: data.Amount,
+        receipt: data.MpesaReceiptNumber,
+        phone: data.PhoneNumber
+      });
+    } else {
+      return res.status(200).json({
+        success: false,
+        message: data.ResultDesc || "Payment failed",
+      });
     }
 
-    if (status !== "success") {
-      return res.status(200).json({ status: "error", message: "Payment not successful" });
-    }
-
-    // Retrieve user from localStorage key (for frontend only testing)
-    // For server DB, you would update the database here
-    // Vercel serverless cannot access client localStorage directly.
-    // Instead, send a signal to frontend to mark user as paid, or store in a DB
-
-    // Respond 200 OK to Safaricom
-    return res.status(200).json({ status: "success", message: `Payment received for ${accountRef}` });
-
-  } catch (err) {
-    console.error("Callback Error:", err);
-    return res.status(500).json({ status: "error", message: err.message });
+  } catch (error) {
+    console.error("Callback Error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 }
