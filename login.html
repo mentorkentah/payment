@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login | LUMIEARN</title>
+
+<!-- Font -->
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+
+<style>
+html, body{
+  margin:0;
+  padding:0;
+  height:100%;
+}
+
+body{
+  font-family:'Orbitron', sans-serif;
+  background:#0a0a0f;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  color:#fff;
+  padding:20px;
+}
+
+.login-card{
+  background:#111118;
+  width:100%;
+  max-width:450px;
+  padding:35px 30px;
+  border-radius:18px;
+  box-shadow:0 0 25px rgba(0,255,240,0.25);
+}
+
+.brand{
+  text-align:center;
+  margin-bottom:25px;
+}
+
+.brand img{
+  width:260px;
+  margin-bottom:10px;
+}
+
+.brand h1{
+  margin:0;
+  font-size:28px;
+  color:#00fff0;
+}
+
+.brand p{
+  font-size:14px;
+  color:#0ff;
+  opacity:.8;
+}
+
+#alertBox{
+  display:none;
+  margin-top:15px;
+  padding:12px;
+  border-radius:12px;
+  font-size:14px;
+  text-align:center;
+}
+
+.form-group{
+  margin-bottom:20px;
+}
+
+label{
+  display:block;
+  font-size:14px;
+  margin-bottom:8px;
+  color:#0ff;
+}
+
+.input-box{
+  position:relative;
+}
+
+.input-box i.left-icon{
+  position:absolute;
+  top:50%;
+  left:15px;
+  transform:translateY(-50%);
+  color:#0ff;
+}
+
+.input-box .toggle-password{
+  position:absolute;
+  right:15px;
+  top:50%;
+  transform:translateY(-50%);
+  cursor:pointer;
+  color:#0ff;
+}
+
+.input-box input{
+  width:100%;
+  height:52px;
+  border-radius:14px;
+  border:1px solid rgba(0,255,240,.4);
+  background:transparent;
+  padding-left:45px;
+  padding-right:45px;
+  color:#fff;
+  font-size:14px;
+  box-sizing:border-box;
+}
+
+.input-box input:focus{
+  outline:none;
+  border-color:#0ff;
+  box-shadow:0 0 12px rgba(0,255,240,.4);
+}
+
+.btn{
+  width:100%;
+  height:52px;
+  border:none;
+  border-radius:16px;
+  background:#00fff0;
+  color:#0a0a0f;
+  font-weight:700;
+  font-size:16px;
+  cursor:pointer;
+  transition:.3s;
+}
+
+.btn:hover{
+  box-shadow:0 0 20px rgba(0,255,240,.6);
+}
+
+.register-link{
+  margin-top:20px;
+  text-align:center;
+  font-size:14px;
+}
+
+.register-link a{
+  color:#00fff0;
+  font-weight:700;
+  text-decoration:none;
+}
+
+/* Remove white autofill background */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #111118 inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color:#00fff0;
+}
+</style>
+</head>
+
+<body>
+
+<div class="login-card">
+  <div class="brand">
+    <img src="https://lumiearn.vercel.app/logo.png" alt="Logo">
+    <h1>LUMIEARN | Login</h1>
+    <p>Access your earning dashboard</p>
+    <div id="alertBox"></div>
+  </div>
+
+  <form id="loginForm">
+
+    <div class="form-group">
+      <label>Username / Email / Phone</label>
+      <div class="input-box">
+        <i class="fa-solid fa-user left-icon"></i>
+        <input type="text" id="usernameEmail" placeholder="Enter username, email or phone" required>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Password</label>
+      <div class="input-box">
+        <i class="fa-solid fa-lock left-icon"></i>
+        <input type="password" id="passwordInput" placeholder="Enter password" required>
+        <i class="fa-solid fa-eye toggle-password"></i>
+      </div>
+    </div>
+
+    <button class="btn" type="submit">Login</button>
+
+  </form>
+
+  <div class="register-link">
+    Don't have an account? <a href="register.html">Register</a>
+  </div>
+</div>
+
+<script>
+// PASSWORD TOGGLE
+document.querySelectorAll(".toggle-password").forEach(icon=>{
+  icon.addEventListener("click", ()=>{
+    const input = icon.previousElementSibling;
+    if(input.type === "password"){
+      input.type = "text";
+      icon.classList.replace("fa-eye","fa-eye-slash");
+    }else{
+      input.type = "password";
+      icon.classList.replace("fa-eye-slash","fa-eye");
+    }
+  });
+});
+
+// LOGIN SYSTEM
+const form = document.getElementById("loginForm");
+const userInput = document.getElementById("usernameEmail");
+const passwordInput = document.getElementById("passwordInput");
+const alertBox = document.getElementById("alertBox");
+
+function showAlert(message, type="error"){
+  alertBox.style.display = "block";
+  alertBox.innerText = message;
+
+  if(type === "success"){
+    alertBox.style.background = "rgba(0,255,150,0.15)";
+    alertBox.style.border = "1px solid #00ff95";
+    alertBox.style.color = "#00ff95";
+  }else{
+    alertBox.style.background = "rgba(255,0,0,0.15)";
+    alertBox.style.border = "1px solid #ff4d4d";
+    alertBox.style.color = "#ff4d4d";
+  }
+}
+
+form.addEventListener("submit", function(e){
+  e.preventDefault();
+  alertBox.style.display = "none";
+
+  const enteredUser = userInput.value.trim().toLowerCase();
+  const enteredPass = passwordInput.value;
+
+  let foundUser = null;
+
+  for(let i = 0; i < localStorage.length; i++){
+    const key = localStorage.key(i);
+
+    if(key && key.startsWith("LUMIEARN_USER_")){
+      const user = JSON.parse(localStorage.getItem(key));
+
+      if(
+        user.username.toLowerCase() === enteredUser ||
+        user.email.toLowerCase() === enteredUser ||
+        user.phone === enteredUser
+      ){
+        foundUser = user;
+        break;
+      }
+    }
+  }
+
+  if(!foundUser){
+    showAlert("User not found. Please register first.");
+    return;
+  }
+
+  if(foundUser.password !== enteredPass){
+    showAlert("Incorrect password.");
+    return;
+  }
+
+  localStorage.setItem("LUMIEARN_LOGGED_IN", foundUser.username);
+
+  showAlert("Login successful! Redirecting...", "success");
+
+  setTimeout(()=>{
+    if(foundUser.paid === true){
+      window.location.href = "dashboard.html";
+    }else{
+      window.location.href = "payment.html";
+    }
+  },1000);
+});
+</script>
+
+</body>
+</html>
