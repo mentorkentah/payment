@@ -1,12 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Activate Account | LUMIEARN</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
-<style>
-html,body{margin:0;padding:0;min-height:100vh;display:flex;justify-content:center;align-items:center;background:linear-gradient(135deg,#0a3f99,#0050ff);font-family:Arial, Helvetica, sans-serif;}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/><style>
+html,body{margin:0;padding:0;min-height:100vh;display:flex;justify-content:center;align-items:center;font-family:Arial, Helvetica, sans-serif;background:linear-gradient(135deg,#0a3f99,#0050ff);}
+
 .pay-card{background:#fff;width:360px;max-width:92%;padding:25px 20px;border-radius:16px;box-shadow:0 8px 25px rgba(0,0,0,0.3);text-align:center;}
 .logo{width:350px;margin-bottom:10px;}
 h2{margin:10px 0 5px;color:#0050ff;}
@@ -16,153 +15,113 @@ h2{margin:10px 0 5px;color:#0050ff;}
 .amount{font-size:26px;font-weight:bold;color:#0050ff;}
 .phone{font-size:14px;margin-top:6px;color:#333;}
 .notice{background:#fff3cd;color:#856404;font-size:12px;padding:10px;border-radius:10px;margin-bottom:15px;font-weight:bold;text-align:left;}
-.btn{width:100%;height:45px;border:none;border-radius:12px;background:#0050ff;color:#fff;font-size:15px;font-weight:bold;cursor:pointer;}
+.btn{width:100%;height:45px;border:none;border-radius:12px;background:#0050ff;color:#fff;font-size:15px;font-weight:bold;cursor:pointer;margin-top:10px;}
 .btn:hover{background:#003bb5;}
 .secure{margin-top:12px;font-size:12px;color:#555;}
 .secure i{color:#0050ff;margin-right:5px;}
 .loading{display:none;margin-top:10px;font-size:13px;font-weight:bold;color:#0050ff;}
-.pay-methods{display:flex;justify-content:space-between;margin-bottom:15px;gap:10px;}
-.pay-methods button{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;border:none;border-radius:12px;font-weight:bold;cursor:pointer;}
-.pay-methods button i{font-size:18px;}
-.pay-methods .mpesa{background:#f7941d;color:#fff;}
-.pay-methods .airtel{background:#e60000;color:#fff;}
-.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);overflow-y:auto;z-index:9999;}
-.modal-content{max-width:400px;margin:60px auto;background:#fff;border-radius:16px;padding:20px;color:#000;text-align:left;}
-.copy-btn{margin-top:10px;background:#0050ff;color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;}
-</style>
-</head>
-<body>
-
-<div class="pay-card">
+.payment-options{display:flex;justify-content:space-between;margin:15px 0;}
+.payment-card{flex:1;margin:0 5px;padding:10px 0;border-radius:12px;border:1px solid #0050ff;background:#e6f0ff;color:#0050ff;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
+.payment-card:hover{background:#d0e4ff;}
+.popup{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:9999;overflow:auto;}
+.popup-content{background:#fff;max-width:400px;margin:60px auto;border-radius:16px;padding:20px;text-align:left;position:relative;color:#000;}
+.popup-content h3{margin-top:0;color:#0050ff;}
+.close-popup{position:absolute;top:10px;right:12px;font-size:20px;cursor:pointer;color:#0050ff;}
+.copy-btn{padding:6px 12px;background:#0050ff;color:#fff;border:none;border-radius:8px;cursor:pointer;margin-top:10px;}
+.copy-btn:hover{background:#003bb5;}
+</style></head>
+<body><div class="pay-card">
   <img src="https://lumiearn.vercel.app/logo.png" class="logo" alt="LUMIEARN">
   <h2>Activate Your Account</h2>
-  <p class="sub">Send the amount below to complete activation</p>
-
-  <div class="amount-box">
+  <p class="sub">Send the amount below to complete activation</p>  <div class="amount-box">
     <span>Activation Fee</span>
     <div class="amount" id="activationAmount">KES 0</div>
     <div class="phone" id="paymentPhone">+000000000</div>
-  </div>
-
-  <div class="notice">
+  </div>  <div class="notice">
     • One-time payment<br>
     • Unlocks full dashboard<br>
     • Referral commission credited instantly
+  </div>  <div class="payment-options">
+    <div class="payment-card" id="mpesaBtn"><i class="fa-brands fa-cc-mastercard"></i> M-Pesa</div>
+    <div class="payment-card" id="airtelBtn"><i class="fa-solid fa-mobile-screen-button"></i> Airtel</div>
+  </div><button class="btn" id="apiPayBtn"><i class="fa-solid fa-lock"></i> I Have Paid</button>
+
+  <div class="loading" id="loadingText">Processing payment, please wait...</div>  <div class="secure"><i class="fa-solid fa-shield-halved"></i> Secure payment confirmation</div>
+</div><!-- Popups --><div class="popup" id="mpesaPopup">
+  <div class="popup-content">
+    <span class="close-popup" onclick="closePopup('mpesaPopup')">&times;</span>
+    <h3>M-Pesa Payment Instructions (Kenya)</h3>
+    <p>1. Go to M-Pesa Menu → Paybill</p>
+    <p>2. Enter Till Number: <span id="mpesaTill">4560832</span></p>
+    <p>3. Enter Amount (any or full)</p>
+    <p>4. Enter your Phone number</p>
+    <p>5. Enter your PIN and send</p>
+    <button class="copy-btn" onclick="copyTill('mpesaTill')">Copy Till</button>
   </div>
-
-  <!-- Payment buttons -->
-  <div class="pay-methods">
-    <button class="mpesa" id="mpesaBtn"><i class="fa-brands fa-paypal"></i> M-Pesa</button>
-    <button class="airtel" id="airtelBtn"><i class="fa-solid fa-mobile-screen"></i> Airtel</button>
+</div><div class="popup" id="airtelPopup">
+  <div class="popup-content">
+    <span class="close-popup" onclick="closePopup('airtelPopup')">&times;</span>
+    <h3>Airtel Payment Instructions (Kenya)</h3>
+    <p>1. Go to Airtel Money → Paybill</p>
+    <p>2. Enter Till Number: <span id="airtelTill">4560832</span></p>
+    <p>3. Enter Amount (any or full)</p>
+    <p>4. Enter your Phone number</p>
+    <p>5. Enter your PIN and send</p>
+    <button class="copy-btn" onclick="copyTill('airtelTill')">Copy Till</button>
   </div>
-
-  <!-- Full amount API push button -->
-  <button class="btn" id="apiPayBtn"><i class="fa-solid fa-lock"></i> I Have Paid</button>
-  <div class="loading" id="loadingText">Processing payment, please wait...</div>
-
-  <div class="secure">
-    <i class="fa-solid fa-shield-halved"></i> Secure payment confirmation
-  </div>
-</div>
-
-<!-- Modal -->
-<div class="modal" id="paymentModal">
-  <div class="modal-content" id="modalContent">
-    <h3 id="modalTitle">Payment Instructions</h3>
-    <p id="modalText"></p>
-    <button class="copy-btn" id="copyBtn">Copy Till</button>
-    <button class="copy-btn" id="modalCloseBtn">Close</button>
-  </div>
-</div>
-
-<script>
+</div><script>
 document.addEventListener("DOMContentLoaded", function(){
 
-  // Get registered user
   const username = localStorage.getItem("LUMIEARN_LOGGED_IN");
-  if(!username) { window.location.href = "login.html"; return; }
+  if(!username){ window.location.href="index.html"; return; }
 
   const userKey = "LUMIEARN_USER_" + username.toLowerCase();
   let userData = JSON.parse(localStorage.getItem(userKey));
-  if(!userData){ alert("User not found."); window.location.href="login.html"; return; }
+  if(!userData){ alert("User not found"); window.location.href="index.html"; return; }
+  if(userData.paid){ window.location.href="dashboard.html"; return; }
 
-  if(userData.paid === true){ window.location.href="dashboard.html"; return; }
+  document.getElementById("activationAmount").textContent = "KES " + userData.capitalFee;
+  document.getElementById("paymentPhone").textContent = userData.phone;
 
-  // Display amount + phone
-  const activationAmount = document.getElementById("activationAmount");
-  const paymentPhone = document.getElementById("paymentPhone");
+  function showPopup(id){ document.getElementById(id).style.display='block'; }
+  function closePopup(id){ document.getElementById(id).style.display='none'; }
+  window.closePopup = closePopup;
 
-  activationAmount.textContent = "KES " + userData.capitalFee;
-  paymentPhone.textContent = userData.phone;
-
-  // Popup modal
-  const modal = document.getElementById("paymentModal");
-  const modalTitle = document.getElementById("modalTitle");
-  const modalText = document.getElementById("modalText");
-  const copyBtn = document.getElementById("copyBtn");
-  const modalCloseBtn = document.getElementById("modalCloseBtn");
-
-  function showModal(title,text,till){
-    modal.style.display = "block";
-    modalTitle.textContent = title;
-    modalText.textContent = text;
-    copyBtn.onclick = ()=> navigator.clipboard.writeText(till);
+  function copyTill(id){
+    const txt = document.getElementById(id).innerText;
+    navigator.clipboard.writeText(txt);
+    alert('Till copied: '+txt);
   }
-  modalCloseBtn.onclick = ()=> modal.style.display="none";
-  modal.onclick = (e)=>{ if(e.target===modal) modal.style.display="none"; }
+  window.copyTill = copyTill;
 
-  // Country-specific procedures (Kenya example)
-  const mpesaProcedure = `1. Go to M-Pesa → Lipa na M-Pesa → Paybill
-2. Enter Business No: 4560832
-3. Account No: ${username}
-4. Amount: KES ${userData.capitalFee}
-5. Enter your M-Pesa PIN and confirm.`;
+  document.getElementById("mpesaBtn").addEventListener("click",()=>showPopup('mpesaPopup'));
+  document.getElementById("airtelBtn").addEventListener("click",()=>showPopup('airtelPopup'));
 
-  const airtelProcedure = `1. Go to Airtel Money → Paybill
-2. Enter Business No: 4560832
-3. Account No: ${username}
-4. Amount: KES ${userData.capitalFee}
-5. Confirm payment.`;
+  document.getElementById("apiPayBtn").addEventListener("click", ()=>{
+    const apiUrl = "https://api.smartcodedesigners.co.ke/mpesa-push";
+    const payload = { username: userData.username, phone: userData.phone, amount: userData.capitalFee, till:"4560832", apiKey:"kthx9bnnggn" };
 
-  document.getElementById("mpesaBtn").addEventListener("click", ()=> showModal("M-Pesa Payment", mpesaProcedure,"4560832"));
-  document.getElementById("airtelBtn").addEventListener("click", ()=> showModal("Airtel Payment", airtelProcedure,"4560832"));
+    document.getElementById("loadingText").style.display = "block";
 
-  // API push button
-  document.getElementById("apiPayBtn").addEventListener("click", async function(){
-    const loading = document.getElementById("loadingText");
-    loading.style.display = "block";
-
-    try{
-      const payload = {
-        till: "4560832",
-        amount: userData.capitalFee,
-        phone: userData.phone,
-        username: username,
-        apiKey: "kthx9bnnggn",
-        callback: "https://lumiearn-pay.vercel.app/mpesa-callback.js"
-      };
-
-      const res = await fetch("https://api.smartcodedesigners.co.ke/mpesa/push", {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body: JSON.stringify(payload)
+    fetch(apiUrl, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload) })
+      .then(res=>res.json())
+      .then(data=>{
+        if(data.success){
+          userData.paid = true;
+          localStorage.setItem(userKey, JSON.stringify(userData));
+          alert("Payment successful!");
+          window.location.href="dashboard.html";
+        }else{
+          alert("Payment failed: "+(data.message||'Unknown error'));
+        }
+        document.getElementById("loadingText").style.display = "none";
+      })
+      .catch(err=>{
+        alert("Payment error: Failed to fetch");
+        document.getElementById("loadingText").style.display = "none";
       });
-
-      const data = await res.json();
-      if(data.status==="success"){
-        alert("Payment push initiated! Complete on your phone.");
-      } else {
-        alert("Payment failed: "+(data.message||"Unknown error"));
-      }
-
-    }catch(err){
-      alert("Payment error: " + err);
-    }
-    loading.style.display="none";
   });
 
 });
-</script>
-
-</body>
+</script></body>
 </html>
