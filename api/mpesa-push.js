@@ -1,37 +1,48 @@
+// /api/mpesa-push.js
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
+  const { username, phone, amount } = req.body;
+
+  if (!username || !phone || !amount) {
+    return res.status(400).json({ error: "Missing parameters" });
+  }
+
+  // --- M-Pesa API credentials ---
+  const tillNumber = "4560832";
+  const apiKey = "kthx9bnnggn";
+
+  // --- Simulate API push ---
+  // In production, you would call Safaricom API here
   try {
-    const { phone, amount, username } = req.body;
-
-    // Safaricom M-Pesa push API
-    const apiUrl = "https://api.smartcodedesigners.co.ke/push";
-    const till = "4560832";
-    const apiKey = "kthx9bnnggn";
-
-    const payload = {
-      phone,
-      amount,
-      till,
-      callback: `https://yourdomain.vercel.app/api/mpesa-callback?username=${username}`
-    };
-
-    const response = await fetch(apiUrl, {
+    // Example fetch (replace with real Safaricom API endpoint)
+    const pushResponse = await fetch("https://api.smartcodedesigners.co.ke/mpesa/push", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${apiKey}`
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({
+        till: tillNumber,
+        phone,
+        amount,
+        username,
+        callback_url: `${req.headers.origin}/api/mpesa-callback?username=${username}`
+      })
     });
 
-    const data = await response.json();
+    const data = await pushResponse.json();
 
-    if (!response.ok) return res.status(400).json(data);
+    if (!pushResponse.ok) {
+      return res.status(500).json({ error: data.message || "Failed to send push" });
+    }
 
-    res.status(200).json(data);
+    // Respond success
+    return res.status(200).json({ message: "Payment push sent successfully", data });
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: "Network error: " + err.message });
   }
 }
