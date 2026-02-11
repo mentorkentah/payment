@@ -1,44 +1,40 @@
-// /api/mpesa-callback.js
+// This endpoint is called by Safaricom when payment is completed
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ success: false, message: 'Method not allowed' });
+  if (req.method !== "POST") {
+    return res.status(405).json({ status: "error", message: "Method not allowed" });
   }
 
   try {
-    const body = req.body; // Safaricom sends JSON payload
+    const callbackData = req.body;
 
-    // Safaricom STK push callback structure
-    const resultCode = body.Body?.stkCallback?.ResultCode;
-    const resultDesc = body.Body?.stkCallback?.ResultDesc;
-    const checkoutRequestID = body.Body?.stkCallback?.CheckoutRequestID;
-    const metadata = body.Body?.stkCallback?.CallbackMetadata?.Item;
+    // Example Safaricom callback data structure:
+    // {
+    //   accountRef: "USERNAME",
+    //   amount: 150,
+    //   phone: "+254712345678",
+    //   status: "success"
+    // }
 
-    // Extract relevant info
-    const amountItem = metadata?.find(i => i.Name === "Amount");
-    const phoneItem = metadata?.find(i => i.Name === "PhoneNumber");
-    const accountRefItem = metadata?.find(i => i.Name === "AccountReference");
+    const { accountRef, status, amount, phone } = callbackData;
 
-    const amount = amountItem?.Value;
-    const phone = phoneItem?.Value;
-    const username = accountRefItem?.Value;
-
-    if(resultCode === 0 && username){
-      // Payment successful
-
-      // --- Update localStorage equivalent in frontend ---
-      // Since this is backend, you can return info for frontend to update localStorage
-      // In real DB, you'd mark user as paid
-      // Here we just respond OK
-      console.log(`Payment success for ${username}, Phone: ${phone}, Amount: ${amount}`);
-
-      return res.status(200).json({ success: true, message: 'Payment successful', username, phone, amount });
-    } else {
-      console.log(`Payment failed: ${resultDesc}`);
-      return res.status(400).json({ success: false, message: resultDesc });
+    if (!accountRef) {
+      return res.status(400).json({ status: "error", message: "Missing accountRef" });
     }
 
+    if (status !== "success") {
+      return res.status(200).json({ status: "error", message: "Payment not successful" });
+    }
+
+    // Retrieve user from localStorage key (for frontend only testing)
+    // For server DB, you would update the database here
+    // Vercel serverless cannot access client localStorage directly.
+    // Instead, send a signal to frontend to mark user as paid, or store in a DB
+
+    // Respond 200 OK to Safaricom
+    return res.status(200).json({ status: "success", message: `Payment received for ${accountRef}` });
+
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ success: false, message: err.message });
+    console.error("Callback Error:", err);
+    return res.status(500).json({ status: "error", message: err.message });
   }
 }
