@@ -1,0 +1,8 @@
+{
+  "name": "kentah-payment",
+  "version": "1.0.0",
+  "description": "Payment page for KENTAH",
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}
