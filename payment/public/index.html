@@ -170,7 +170,9 @@
                 <div class="hint">Min: 2 | Max: 1000</div>
             </div>
 
-            <button type="submit" id="payBtn">🔒 PAY NOW</button>
+            <button type="submit" id="payBtn">
+                🔒 PAY NOW
+            </button>
         </form>
 
         <div class="loader" id="loader">
@@ -196,7 +198,6 @@
             setTimeout(() => msg.classList.remove('show'), 8000);
         }
 
-        // Phone input formatting
         document.getElementById('phone').addEventListener('input', function(e) {
             let val = e.target.value.replace(/\D/g, '');
             if (val.startsWith('254')) val = val.substring(3);
@@ -212,8 +213,7 @@
             msg.classList.remove('show');
 
             try {
-                // Updated fetch to call Vercel serverless
-                const response = await fetch('/api/pay', {
+                const response = await fetch('/pay', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
