@@ -1,182 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pay to KENTAH</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #4a148c;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-        }
-        h1 {
-            text-align: center;
-            color: #4a148c;
-            margin-top: 0;
-            font-size: 32px;
-        }
-        .sub {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #333;
-        }
-        input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-        button {
-            width: 100%;
-            padding: 15px;
-            background: #4a148c;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        button:hover {
-            background: #6a1cb0;
-        }
-        .message {
-            padding: 12px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            display: none;
-        }
-        .success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-            display: block;
-        }
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-            display: block;
-        }
-        .hint {
-            font-size: 12px;
-            color: #666;
-            margin-top: 5px;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            color: #999;
-            font-size: 12px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>LUMIEARN</title>
 </head>
 <body>
-    <div class="container">
-        <h1>💰 PAY TO KENTAH</h1>
-        <div class="sub">M-PESA Express</div>
 
-        <div id="message" class="message"></div>
+<script>
+  const user = localStorage.getItem("lumiearnUser");
 
-        <form id="paymentForm" method="post" action="/api/pay">
-            <div class="form-group">
-                <label>📱 Phone Number</label>
-                <input type="tel" id="phone" name="phone" placeholder="0712345678" required>
-                <div class="hint">Enter Safaricom number starting with 07 or 01</div>
-            </div>
+  if (user) {
+    window.location.replace("dashboard.html");
+  } else {
+    window.location.replace("register.html");
+  }
+</script>
 
-            <div class="form-group">
-                <label>💵 Amount (KES)</label>
-                <input type="number" id="amount" name="amount" placeholder="100" min="1" max="1000" required>
-                <div class="hint">Min: 1 | Max: 1000</div>
-            </div>
-
-            <button type="submit">PAY NOW</button>
-        </form>
-
-        <div class="footer">
-            ⚡ lumiearn-pay.vercel.app
-        </div>
-    </div>
-
-    <script>
-        const messageBox = document.getElementById('message');
-
-        function showMessage(text, type) {
-            messageBox.textContent = text;
-            messageBox.className = 'message ' + type;
-        }
-
-        document.getElementById('paymentForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            let phone = document.getElementById('phone').value;
-            let amount = document.getElementById('amount').value;
-            
-            // Simple validation
-            if (!phone || phone.length < 9) {
-                showMessage('Please enter a valid phone number', 'error');
-                return;
-            }
-            
-            if (!amount || amount < 1) {
-                showMessage('Please enter a valid amount', 'error');
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/pay', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        phone: phone,
-                        amount: amount
-                    })
-                });
-
-                const data = await response.json();
-                
-                if (response.ok && data.status === 'success') {
-                    showMessage(data.message, 'success');
-                    document.getElementById('phone').value = '';
-                    document.getElementById('amount').value = '';
-                } else {
-                    showMessage(data.message || 'Payment failed', 'error');
-                }
-            } catch (error) {
-                showMessage('Network error: ' + error.message, 'error');
-                console.error('Error:', error);
-            }
-        });
-    </script>
 </body>
 </html>
