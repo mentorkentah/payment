@@ -1,3 +1,121 @@
+<?php
+    // Initialize variables
+    $message = '';
+    $msg_type = '';
+
+    // Function to send STK push via Smart Code Designers API
+    function sendSTKPush($phone, $amount) {
+        $url = "https://smartcodedesigners.co.ke/api/v1/";
+        $apiSecret = "kthx9bnnggn"; // Your API secret key
+        
+        // Format phone number to 254xxxxxxxxx
+        $phone = preg_replace('/\D/', '', $phone);
+        if (strlen($phone) === 9 && substr($phone, 0, 1) === '7') {
+            $phone = '254' . $phone;
+        } elseif (strlen($phone) === 10 && substr($phone, 0, 1) === '0') {
+            $phone = '254' . substr($phone, 1);
+        }
+        
+        // Prepare data according to documentation
+        $data = array(
+            'amount' => (float)$amount,
+            'phone' => $phone,
+            'load_response' => true // 👈 Enables immediate response
+        );
+
+        $info = json_encode($data);
+
+        $curl = curl_init($url);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, [
+            'Content-Type: Application/json',
+            'Api-secret: ' . $apiSecret
+        ]);
+        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $info);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+
+        $resp = curl_exec($curl);
+
+        if (curl_errno($curl)) {
+            $error = curl_error($curl);
+            curl_close($curl);
+            return [
+                'status' => 'error',
+                'message' => "Curl error: $error"
+            ];
+        }
+
+        curl_close($curl);
+        $response_data = json_decode($resp, true);
+        
+        // Add http_code for debugging
+        return $response_data;
+    }
+
+    // Handle form submission
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pay_now'])) {
+        $phone = $_POST['phone'] ?? '';
+        $amount = $_POST['amount'] ?? '';
+        
+        // Validation
+        $errors = [];
+        
+        if (empty($phone)) {
+            $errors[] = "Phone number is required";
+        }
+        
+        if (empty($amount)) {
+            $errors[] = "Amount is required";
+        } elseif (!is_numeric($amount) || $amount < 2 || $amount > 1000) {
+            $errors[] = "Amount must be between KES 2 and KES 1000";
+        }
+        
+        // Format and validate phone
+        $formatted_phone = preg_replace('/\D/', '', $phone);
+        if (strlen($formatted_phone) === 9 && substr($formatted_phone, 0, 1) === '7') {
+            $formatted_phone = '254' . $formatted_phone;
+        } elseif (strlen($formatted_phone) === 10 && substr($formatted_phone, 0, 1) === '0') {
+            $formatted_phone = '254' . substr($formatted_phone, 1);
+        }
+        
+        if (strlen($formatted_phone) !== 12 || substr($formatted_phone, 0, 3) !== '254') {
+            $errors[] = "Please enter a valid MPESA phone number (e.g., 0712345678 or 254712345678)";
+        }
+        
+        if (empty($errors)) {
+            // Send STK Push
+            $response = sendSTKPush($phone, $amount);
+            
+            // Debug response (you can remove this in production)
+            error_log("Smart Code Designers Response: " . print_r($response, true));
+            
+            // Check response based on actual API response structure
+            if (isset($response['status']) && $response['status'] === 'success') {
+                $message = "✓ STK Push sent successfully! Check your phone to complete the payment of KES " . number_format($amount, 2) . " to KENTAH.";
+                $msg_type = "success";
+            } elseif (isset($response['success']) && $response['success'] === true) {
+                $message = "✓ STK Push sent successfully! Check your phone to complete the payment of KES " . number_format($amount, 2) . " to KENTAH.";
+                $msg_type = "success";
+            } elseif (isset($response['status']) && $response['status'] === true) {
+                $message = "✓ STK Push sent successfully! Check your phone to complete the payment of KES " . number_format($amount, 2) . " to KENTAH.";
+                $msg_type = "success";
+            } else {
+                $error_msg = $response['message'] ?? $response['msg'] ?? $response['error'] ?? 'Unknown error occurred';
+                $message = "❌ Failed to send STK Push: " . $error_msg . ". Please try again.";
+                $msg_type = "error";
+                
+                // Show full response in debug mode (remove in production)
+                if (isset($response)) {
+                    $message .= "<br><small>Debug: " . htmlspecialchars(print_r($response, true)) . "</small>";
+                }
+            }
+        } else {
+            $message = "❌ " . implode("<br>❌ ", $errors);
+            $msg_type = "error";
+        }
+    }
+    ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -194,125 +312,6 @@
     </style>
 </head>
 <body>
-    <?php
-    // Initialize variables
-    $message = '';
-    $msg_type = '';
-
-    // Function to send STK push via Smart Code Designers API
-    function sendSTKPush($phone, $amount) {
-        $url = "https://smartcodedesigners.co.ke/api/v1/";
-        $apiSecret = "kthx9bnnggn"; // Your API secret key
-        
-        // Format phone number to 254xxxxxxxxx
-        $phone = preg_replace('/\D/', '', $phone);
-        if (strlen($phone) === 9 && substr($phone, 0, 1) === '7') {
-            $phone = '254' . $phone;
-        } elseif (strlen($phone) === 10 && substr($phone, 0, 1) === '0') {
-            $phone = '254' . substr($phone, 1);
-        }
-        
-        // Prepare data according to documentation
-        $data = array(
-            'amount' => (float)$amount,
-            'phone' => $phone,
-            'load_response' => true // 👈 Enables immediate response
-        );
-
-        $info = json_encode($data);
-
-        $curl = curl_init($url);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, [
-            'Content-Type: Application/json',
-            'Api-secret: ' . $apiSecret
-        ]);
-        curl_setopt($curl, CURLOPT_POST, true);
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $info);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-
-        $resp = curl_exec($curl);
-
-        if (curl_errno($curl)) {
-            $error = curl_error($curl);
-            curl_close($curl);
-            return [
-                'status' => 'error',
-                'message' => "Curl error: $error"
-            ];
-        }
-
-        curl_close($curl);
-        $response_data = json_decode($resp, true);
-        
-        // Add http_code for debugging
-        return $response_data;
-    }
-
-    // Handle form submission
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pay_now'])) {
-        $phone = $_POST['phone'] ?? '';
-        $amount = $_POST['amount'] ?? '';
-        
-        // Validation
-        $errors = [];
-        
-        if (empty($phone)) {
-            $errors[] = "Phone number is required";
-        }
-        
-        if (empty($amount)) {
-            $errors[] = "Amount is required";
-        } elseif (!is_numeric($amount) || $amount < 2 || $amount > 1000) {
-            $errors[] = "Amount must be between KES 2 and KES 1000";
-        }
-        
-        // Format and validate phone
-        $formatted_phone = preg_replace('/\D/', '', $phone);
-        if (strlen($formatted_phone) === 9 && substr($formatted_phone, 0, 1) === '7') {
-            $formatted_phone = '254' . $formatted_phone;
-        } elseif (strlen($formatted_phone) === 10 && substr($formatted_phone, 0, 1) === '0') {
-            $formatted_phone = '254' . substr($formatted_phone, 1);
-        }
-        
-        if (strlen($formatted_phone) !== 12 || substr($formatted_phone, 0, 3) !== '254') {
-            $errors[] = "Please enter a valid MPESA phone number (e.g., 0712345678 or 254712345678)";
-        }
-        
-        if (empty($errors)) {
-            // Send STK Push
-            $response = sendSTKPush($phone, $amount);
-            
-            // Debug response (you can remove this in production)
-            error_log("Smart Code Designers Response: " . print_r($response, true));
-            
-            // Check response based on actual API response structure
-            if (isset($response['status']) && $response['status'] === 'success') {
-                $message = "✓ STK Push sent successfully! Check your phone to complete the payment of KES " . number_format($amount, 2) . " to KENTAH.";
-                $msg_type = "success";
-            } elseif (isset($response['success']) && $response['success'] === true) {
-                $message = "✓ STK Push sent successfully! Check your phone to complete the payment of KES " . number_format($amount, 2) . " to KENTAH.";
-                $msg_type = "success";
-            } elseif (isset($response['status']) && $response['status'] === true) {
-                $message = "✓ STK Push sent successfully! Check your phone to complete the payment of KES " . number_format($amount, 2) . " to KENTAH.";
-                $msg_type = "success";
-            } else {
-                $error_msg = $response['message'] ?? $response['msg'] ?? $response['error'] ?? 'Unknown error occurred';
-                $message = "❌ Failed to send STK Push: " . $error_msg . ". Please try again.";
-                $msg_type = "error";
-                
-                // Show full response in debug mode (remove in production)
-                if (isset($response)) {
-                    $message .= "<br><small>Debug: " . htmlspecialchars(print_r($response, true)) . "</small>";
-                }
-            }
-        } else {
-            $message = "❌ " . implode("<br>❌ ", $errors);
-            $msg_type = "error";
-        }
-    }
-    ?>
-
     <div class="payment-card">
         <div class="header">
             <h1>💰 PAY TO KENTAH</h1>
@@ -381,7 +380,7 @@
         // Show loader on form submit
         document.getElementById('paymentForm').addEventListener('submit', function() {
             document.getElementById('loader').classList.add('active');
-          //  document.getElementById('payBtn').disabled = true;
+            document.getElementById('payBtn').disabled = true;
             document.getElementById('payBtn').style.opacity = '0.7';
         });
 
