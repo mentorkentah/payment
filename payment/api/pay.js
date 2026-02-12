@@ -11,21 +11,19 @@ export default async function handler(req, res) {
         let p = phone.replace(/\D/g, '');
         if (p.startsWith('0')) p = '254' + p.substring(1);
         if (p.startsWith('7')) p = '254' + p;
-        if (p.length === 12 && p.startsWith('254')) {
-            // Valid format
-        } else {
-            return res.status(400).json({ 
-                status: 'error', 
-                message: 'Use format: 0712345678' 
-            });
-        }
-
-        // Send to Smart Code Designers
-        const response = await fetch('https://smartcodedesigners.co.ke/api/v1/', {
+        
+        // EXACT URL - NO PATHS
+        const url = 'https://api.smartcodedesigners.co.ke';
+        
+        console.log('Sending to:', url);
+        console.log('Phone:', p);
+        console.log('Amount:', amount);
+        
+        const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Api-secret': 'kthx9bnnggn'
+                'Api-secret': 'kthx9bnnggn'  // Your friend's actual secret
             },
             body: JSON.stringify({
                 amount: Number(amount),
@@ -34,24 +32,39 @@ export default async function handler(req, res) {
             })
         });
 
-        const data = await response.json();
+        // Try to get response text even if not JSON
+        const text = await response.text();
+        console.log('Raw response:', text);
         
-        if (data.status === 'success' || data.success === true) {
-            return res.json({ 
-                status: 'success', 
-                message: `✓ Check phone to pay KES ${amount} to KENTAH` 
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            data = { raw: text };
+        }
+        
+        // Check if successful
+        if (response.ok) {
+            return res.json({
+                status: 'success',
+                message: `✓ Check your phone to pay KES ${amount} to KENTAH`,
+                debug: data
             });
         } else {
-            return res.status(400).json({ 
-                status: 'error', 
-                message: data.message || 'STK failed' 
+            return res.status(response.status).json({
+                status: 'error',
+                message: `API Error (${response.status})`,
+                debug: data
             });
         }
 
     } catch (error) {
-        return res.status(500).json({ 
-            status: 'error', 
-            message: 'Server error' 
+        console.error('Fatal error:', error);
+        
+        return res.status(500).json({
+            status: 'error',
+            message: 'Network error: ' + error.message,
+            debug: error.toString()
         });
     }
 }
