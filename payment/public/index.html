@@ -5,221 +5,161 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pay to KENTAH</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            background: #4a148c;
             display: flex;
             justify-content: center;
             align-items: center;
+            height: 100vh;
+            margin: 0;
             padding: 20px;
         }
-        .card {
+        .container {
             background: white;
-            border-radius: 20px;
-            padding: 40px;
+            padding: 30px;
+            border-radius: 10px;
             width: 100%;
-            max-width: 450px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 400px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
         }
         h1 {
             text-align: center;
-            color: #2d3748;
-            font-size: 2.2em;
-            margin-bottom: 10px;
+            color: #4a148c;
+            margin-top: 0;
+            font-size: 32px;
         }
         .sub {
             text-align: center;
-            color: #718096;
+            color: #666;
             margin-bottom: 30px;
-            text-transform: uppercase;
-            letter-spacing: 3px;
+            font-size: 14px;
         }
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
         label {
             display: block;
-            margin-bottom: 8px;
-            color: #4a5568;
-            font-weight: 500;
-        }
-        .input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-        .prefix {
-            position: absolute;
-            left: 15px;
-            color: #718096;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
         }
         input {
             width: 100%;
-            padding: 15px;
-            padding-left: 50px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 1em;
-            outline: none;
-        }
-        input:focus {
-            border-color: #667eea;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
         }
         button {
             width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 15px;
+            background: #4a148c;
             color: white;
             border: none;
-            border-radius: 12px;
-            font-size: 1.1em;
-            font-weight: 600;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
             cursor: pointer;
-            transition: 0.3s;
+            margin-top: 10px;
         }
         button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(102,126,234,0.4);
-        }
-        button:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
+            background: #6a1cb0;
         }
         .message {
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 25px;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 20px;
             display: none;
-        }
-        .message.show {
-            display: block;
         }
         .success {
-            background: #c6f6d5;
-            border: 2px solid #9ae6b4;
-            color: #22543d;
-        }
-        .error {
-            background: #fed7d7;
-            border: 2px solid #fc8181;
-            color: #742a2a;
-        }
-        .loader {
-            display: none;
-            text-align: center;
-            margin-top: 20px;
-        }
-        .loader.active {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
             display: block;
         }
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
         }
         .hint {
-            font-size: 0.85em;
-            color: #718096;
+            font-size: 12px;
+            color: #666;
             margin-top: 5px;
         }
         .footer {
-            margin-top: 30px;
             text-align: center;
-            color: #718096;
-            font-size: 0.8em;
+            margin-top: 30px;
+            color: #999;
+            font-size: 12px;
         }
     </style>
 </head>
 <body>
-    <div class="card">
+    <div class="container">
         <h1>💰 PAY TO KENTAH</h1>
-        <div class="sub">M-PESA Secure</div>
+        <div class="sub">M-PESA Express</div>
 
         <div id="message" class="message"></div>
 
-        <form id="paymentForm">
+        <form id="paymentForm" method="post" action="/api/pay">
             <div class="form-group">
                 <label>📱 Phone Number</label>
-                <div class="input-wrapper">
-                    <span class="prefix">+254</span>
-                    <input type="tel" id="phone" placeholder="712345678" required>
-                </div>
-                <div class="hint">e.g., 0712345678 or 712345678</div>
+                <input type="tel" id="phone" name="phone" placeholder="0712345678" required>
+                <div class="hint">Enter Safaricom number starting with 07 or 01</div>
             </div>
 
             <div class="form-group">
                 <label>💵 Amount (KES)</label>
-                <div class="input-wrapper">
-                    <span class="prefix">KES</span>
-                    <input type="number" id="amount" placeholder="100" min="2" max="1000" required>
-                </div>
-                <div class="hint">Min: 2 | Max: 1000</div>
+                <input type="number" id="amount" name="amount" placeholder="100" min="1" max="1000" required>
+                <div class="hint">Min: 1 | Max: 1000</div>
             </div>
 
-            <button type="submit" id="payBtn">
-                🔒 PAY NOW
-            </button>
+            <button type="submit">PAY NOW</button>
         </form>
 
-        <div class="loader" id="loader">
-            <div class="spinner"></div>
-            <p style="margin-top: 15px;">Sending STK Push...</p>
-        </div>
-
         <div class="footer">
-            ⚡ Smart Code Designers<br>
-            Check phone for M-PESA prompt
+            ⚡ lumiearn-pay.vercel.app
         </div>
     </div>
 
     <script>
-        const form = document.getElementById('paymentForm');
-        const payBtn = document.getElementById('payBtn');
-        const loader = document.getElementById('loader');
-        const msg = document.getElementById('message');
+        const messageBox = document.getElementById('message');
 
         function showMessage(text, type) {
-            msg.textContent = text;
-            msg.className = `message ${type} show`;
-            setTimeout(() => msg.classList.remove('show'), 8000);
+            messageBox.textContent = text;
+            messageBox.className = 'message ' + type;
         }
 
-        document.getElementById('phone').addEventListener('input', function(e) {
-            let val = e.target.value.replace(/\D/g, '');
-            if (val.startsWith('254')) val = val.substring(3);
-            if (val.startsWith('0')) val = val.substring(1);
-            e.target.value = val.substring(0, 9);
-        });
-
-        form.addEventListener('submit', async (e) => {
+        document.getElementById('paymentForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            payBtn.disabled = true;
-            loader.classList.add('active');
-            msg.classList.remove('show');
+            let phone = document.getElementById('phone').value;
+            let amount = document.getElementById('amount').value;
+            
+            // Simple validation
+            if (!phone || phone.length < 9) {
+                showMessage('Please enter a valid phone number', 'error');
+                return;
+            }
+            
+            if (!amount || amount < 1) {
+                showMessage('Please enter a valid amount', 'error');
+                return;
+            }
 
             try {
-                // THIS URL WORKS ON BOTH LOCAL AND VERCEL
                 const response = await fetch('/api/pay', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
                     body: JSON.stringify({
-                        phone: document.getElementById('phone').value,
-                        amount: document.getElementById('amount').value
+                        phone: phone,
+                        amount: amount
                     })
                 });
 
@@ -233,10 +173,8 @@
                     showMessage(data.message || 'Payment failed', 'error');
                 }
             } catch (error) {
-                showMessage('Network error. Try again.', 'error');
-            } finally {
-                payBtn.disabled = false;
-                loader.classList.remove('active');
+                showMessage('Network error: ' + error.message, 'error');
+                console.error('Error:', error);
             }
         });
     </script>
