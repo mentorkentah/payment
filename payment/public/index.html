@@ -213,7 +213,8 @@
             msg.classList.remove('show');
 
             try {
-                const response = await fetch('/pay', {
+                // THIS URL WORKS ON BOTH LOCAL AND VERCEL
+                const response = await fetch('/api/pay', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
