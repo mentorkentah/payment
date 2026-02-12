@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+</head>
+<body>
+    <h2>Test Smart Code Designers API</h2>
+    
+    <div id="result" style="white-space: pre-wrap; background: #f4f4f4; padding: 20px;"></div>
+
+    <script>
+        async function testAPI() {
+            const result = document.getElementById('result');
+            result.innerHTML = 'Testing API...';
+            
+            try {
+                // Test 1: Direct API call
+                result.innerHTML += '\n\n📞 Testing Smart Code Designers API...\n';
+                
+                const response = await fetch('https://smartcodedesigners.co.ke/api/v1/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Api-secret': 'kthx9bnnggn'
+                    },
+                    body: JSON.stringify({
+                        amount: 10,
+                        phone: '254712345678',
+                        load_response: true
+                    })
+                });
+
+                const data = await response.json();
+                result.innerHTML += '✅ Response received:\n' + JSON.stringify(data, null, 2);
+                
+            } catch (error) {
+                result.innerHTML += '❌ ERROR: ' + error.message;
+            }
+        }
+
+        testAPI();
+    </script>
+</body>
+</html>
